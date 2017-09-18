@@ -25,13 +25,18 @@ var api = {
 	},
 	tag: {
 		create: prefix + 'tags/create?',//创建标签
-		getall: prefix + 'tags/get?',//获取所有标签
+		getAll: prefix + 'tags/get?',//获取所有标签
 		check: prefix + 'tags/getidlist?',//查询某用户的所有标签
 		update: prefix + 'tags/update?',//更新标签
 		del: prefix + 'tags/delete?',//删除标签
-		getone: prefix + 'user/tag/get?',//查询某标签下的所有用户
+		getOne: prefix + 'user/tag/get?',//查询某标签下的所有用户
 		batch: prefix + 'tags/members/batchtagging?',//批量为用户打标签
 		move: prefix + 'tags/members/batchuntagging?',//批量为用户取消标签
+	},
+	user:{
+		fetch: prefix + 'user/info?',
+		batch: prefix + 'user/info/batchget?',
+		getList: prefix + 'user/get?'
 	}
 }
 
@@ -315,6 +320,8 @@ Wechat.prototype.countMaterial = function() {
 				}else {
 					throw new Error('Update material fails')
 				}
+			}).catch(function(err) {
+				reject(err)
 			})
 		})
 	})
@@ -337,7 +344,7 @@ Wechat.prototype.batchMaterial = function(options) {
 			request({
 				method: 'POST',
 				url: url,
-				boay: options,
+				body: options,
 				json: true
 			}).then(function(response) {
 				var _data = response.body
@@ -347,6 +354,8 @@ Wechat.prototype.batchMaterial = function(options) {
 				}else {
 					throw new Error('batch material fails')
 				}
+			}).catch(function(err) {
+				reject(err)
 			})
 		})
 	})
@@ -369,5 +378,258 @@ Wechat.prototype.reply = function() {
 
 	console.log(xml)
 }
+
+//创建标签
+Wechat.prototype.createTag = function(name) {
+	var that = this;
+	return new Promise(function(resolve, reject) {
+		that.fetchAccessToken().then(function(data) {
+
+			var url = api.tag.create + 'access_token=' + data.access_token
+
+			var form = {
+				tag: {
+					name: name
+				}
+			}
+
+			request({method:'POST', url: url, body: form, json: true})
+				.then(function(response) {
+					var _data = response.body
+					if (_data) {
+						resolve(_data)
+					}else {
+						throw new Error('create tag failed')
+					}
+				}).catch(function(err) {
+					reject(err)
+				})
+		})
+	})
+}
+
+//获取所有标签
+Wechat.prototype.getAllTags = function() {
+	var that = this
+
+	return new Promise(function(resolve,reject) {
+
+		that.fetchAccessToken().then(function(data) {
+			var url = api.tag.getAll + 'access_token=' + data.access_token
+
+			request({method:'GET', url: url, json: true})
+				.then(function(response) {
+					var _data = response.body
+					if (_data) {
+						resolve(_data)
+					}else {
+						throw new Error('create tag failed')
+					}
+				}).catch(function(err) {
+					reject(err)
+				})
+		})
+	})
+}
+
+//删除标签
+Wechat.prototype.deleteTag = function(tagId) {
+	var that = this
+
+	return new Promise(function(resolve,reject) {
+
+		that.fetchAccessToken().then(function(data) {
+
+			var url = api.tag.del + 'access_token=' + data.access_token
+
+			var form = {
+				tag: {
+					id: tagId
+				}
+			}
+
+			request({method:'POST', url: url, body: form, json: true})
+				.then(function(response) {
+					var _data = response.body
+					if (_data.errmsg === 'ok') {
+						resolve(_data)
+					}else {
+						throw new Error('delete tag failed')
+					}
+				}).catch(function(err) {
+					reject(err)
+				})
+		})
+	})
+}
+
+//获取某用户的标签
+Wechat.prototype.checkTag = function(userId) {
+	var that = this
+
+	return new Promise(function(resolve,reject) {
+
+		that.fetchAccessToken().then(function(data) {
+
+			var url = api.tag.check + 'access_token=' + data.access_token
+
+			var form = { openid: userId }
+
+			request({method:'POST', url: url, body: form, json: true})
+				.then(function(response) {
+					var _data = response.body
+					if (_data) {
+						resolve(_data)
+					}else {
+						throw new Error('check tag failed')
+					}
+				}).catch(function(err) {
+					reject(err)
+				})
+		})
+	})
+}
+
+//批量为用户打标签
+Wechat.prototype.batchTag = function(userIdLsit, tagId) {
+	var that = this
+
+	return new Promise(function(resolve,reject) {
+
+		that.fetchAccessToken().then(function(data) {
+
+			var url = api.tag.batch + 'access_token=' + data.access_token
+
+			var form = {
+				openid_list: userIdLsit,
+				tagid: tagId
+			}
+
+			request({method:'POST', url: url, body: form, json: true})
+				.then(function(response) {
+					var _data = response.body
+					if (_data) {
+						resolve(_data)
+					}else {
+						throw new Error('batch tag failed')
+					}
+				}).catch(function(err) {
+					reject(err)
+				})
+		})
+	})
+}
+
+//批量为用户移除标签
+Wechat.prototype.unbatchTag = function(userIdLsit, tagId) {
+	var that = this
+
+	return new Promise(function(resolve,reject) {
+
+		that.fetchAccessToken().then(function(data) {
+
+			var url = api.tag.move + 'access_token=' + data.access_token
+
+			var form = {
+				openid_list: userIdLsit,
+				tagid: tagId
+			}
+
+			request({method:'POST', url: url, body: form, json: true})
+				.then(function(response) {
+					var _data = response.body
+					if (_data) {
+						resolve(_data)
+					}else {
+						throw new Error('move tag failed')
+					}
+				}).catch(function(err) {
+					reject(err)
+				})
+		})
+	})
+}
+
+//获取用户基本信息
+Wechat.prototype.fetchUserInfo = function(userIds, lang) {
+	var that = this
+	var lang = lang || 'zh_CN'
+	var url = ''
+	var options = {}
+
+	return new Promise(function(resolve,reject) {
+
+		that.fetchAccessToken().then(function(data) {
+
+			if (!Array.isArray(userIds)) { //单个获取
+				url = api.user.fetch + 'access_token=' + data.access_token
+						+ '&openid=' + userIds + '&lang=' + lang
+				options = {
+					url: url,
+					json: true
+				}
+			}else {
+				url = api.user.batch + 'access_token=' + data.access_token
+				var user_list = []
+				for (var i = 0; i < userIds.length; i++) {
+					user_list.push({
+						openid: userIds[i],
+						lang: lang
+					})
+				}
+
+				options = {
+					method: 'POST',
+					url: url,
+					body: {
+						user_list: user_list
+					},
+					json: true
+				}
+			}
+
+			request(options).then(function(response) {
+					var _data = response.body
+					if (_data) {
+						resolve(_data)
+					}else {
+						throw new Error('get userinfo failed')
+					}
+				}).catch(function(err) {
+					reject(err)
+				})
+		})
+	})
+}
+
+//获取用户列表
+Wechat.prototype.fetchUserInfoList = function(nextOpenId) {
+	var that = this
+
+	return new Promise(function(resolve,reject) {
+
+		that.fetchAccessToken().then(function(data) {
+
+				var url = api.user.getList + 'access_token=' + data.access_token
+
+				if (nextOpenId) {
+					url += '&next_openid=' + nextOpenId
+				}
+
+
+			request({url: url, json: true}).then(function(response) {
+					var _data = response.body
+					if (_data) {
+						resolve(_data)
+					}else {
+						throw new Error('get userinfolsit failed')
+					}
+				}).catch(function(err) {
+					reject(err)
+				})
+		})
+	})
+}
+
 
 module.exports = Wechat

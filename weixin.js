@@ -37,12 +37,9 @@ exports.reply = async (ctx,next) => {
 		var content = message.Content
 		var  reply = '您输入了 ' + message.Content
 
-		if (content === '1') {
-			reply = '第一'
-		}else if (content === '2') {
-			reply = '第二'
-		}else if (content === '3') {
-			reply = '第三'
+		if (content === '1') { reply = '第一'
+		}else if (content === '2') { reply = '第二'
+		}else if (content === '3') { reply = '第三'
 		}else if (content === '4') {
 			reply = [{
 				title: '科技改变世界1',
@@ -114,6 +111,47 @@ exports.reply = async (ctx,next) => {
 			})
 
 			reply = news
+		}else if (content === '创建标签') {
+			var data = await wechatApi.createTag('测试标签1')
+
+			reply = data
+		}else if (content === '标签列表') {
+			var data = await wechatApi.getAllTags()
+
+			console.log(data)
+
+			reply = data
+		}else if (content === '删除标签') {
+			var data = await wechatApi.deleteTag(101)
+
+			console.log(data)
+
+			reply = data
+		}else if (content === '查询用户标签') {
+			var data = await wechatApi.checkTag('oIwts0qGX0bcNkQw9lv0zz0wtGDg')
+
+			console.log(data)
+
+			reply = data
+		}else if (content === '打标签') {
+			var list = new Array('oIwts0qGX0bcNkQw9lv0zz0wtGDg')
+			var data = await wechatApi.batchTag(list,100)
+
+			console.log(data)
+
+			reply = data
+		}else if (content === '移除标签') {
+			var list = new Array('oIwts0qGX0bcNkQw9lv0zz0wtGDg')
+			var data = await wechatApi.unbatchTag(list,100)
+
+			console.log(data)
+
+			reply = data
+		}else if (content === '9') {
+			var data = await wechatApi.fetchUserInfoList()
+			console.log(data)
+
+			reply = "1"
 		}
 
 		ctx.body = reply
