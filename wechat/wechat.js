@@ -11,7 +11,7 @@ var api = {
 	accessToken: prefix + 'token?grant_type=client_credential',
 	temporary: {
 		upload: prefix + 'media/upload?',//上传临时素材
-		fetch: prefix + 'media/get?'//获取临时素材
+		fetch: prefix + 'media/get?',//获取临时素材
 	},
 	permanent: {
 		upload: prefix + 'material/add_material?',//上传永久素材(非图文)
@@ -21,7 +21,7 @@ var api = {
 		del: prefix + 'material/del_material?',//删除永久素材
 		update: prefix + 'material/update_news?',//修改永久素材
 		count: prefix + 'material/get_materialcount?',//获取素材总数
-		batch: prefix + 'material/batchget_material?'//获取素材列表
+		batch: prefix + 'material/batchget_material?',//获取素材列表
 	},
 	tag: {
 		create: prefix + 'tags/create?',//创建标签
@@ -33,10 +33,13 @@ var api = {
 		batch: prefix + 'tags/members/batchtagging?',//批量为用户打标签
 		move: prefix + 'tags/members/batchuntagging?',//批量为用户取消标签
 	},
-	user:{
-		fetch: prefix + 'user/info?',
-		batch: prefix + 'user/info/batchget?',
-		getList: prefix + 'user/get?'
+	user: {
+		fetch: prefix + 'user/info?',//获取单个用户信息
+		batch: prefix + 'user/info/batchget?',//批量获取用户信息
+		getList: prefix + 'user/get?',//获取用户列表
+	},
+	mass: {
+		sendByTag: prefix + 'message/mass/sendall?',//根据标签进行群发
 	}
 }
 
@@ -631,5 +634,45 @@ Wechat.prototype.fetchUserInfoList = function(nextOpenId) {
 	})
 }
 
+//根据标签进行群发
+Wechat.prototype.sendByTag = function(type, message, tagId) {
+	var that = this
+	var msg = {
+		filter: {},
+		msgtype: type,
+		send_ignore_reprint: 0
+	}
+
+	msg[type] = message
+
+	if (!tagId) {
+		msg.filter.is_to_all = true
+	}else {
+		msg.filter = {
+			is_to_all: false,
+			tag_id: tagId
+		}
+	}
+
+	return new Promise(function(resolve,reject) {
+
+		that.fetchAccessToken().then(function(data) {
+
+			var url = api.mass.sendByTag + 'access_token=' + data.access_token
+
+			request({method: 'POST', url: url, body: msg, json: true})
+				.then(function(response) {
+					var _data = response.body
+					if (_data) {
+						resolve(_data)
+					}else {
+						throw new Error('send message by tag failed')
+					}
+				}).catch(function(err) {
+					reject(err)
+				})
+		})
+	})
+}
 
 module.exports = Wechat

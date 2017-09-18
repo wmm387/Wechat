@@ -152,6 +152,24 @@ exports.reply = async (ctx,next) => {
 			console.log(data)
 
 			reply = "1"
+		}else if (content === '10') {
+			var data = await wechatApi.batchMaterial({
+				type: 'news',
+				offset: 0,
+				count: 10 })
+
+			console.log(JSON.stringify(data))
+
+			reply = "1"
+		}else if (content === '11') {
+			var mpnews = {
+				media_id: 'ZBZShdErOL4QYM4CmZJRfHYQbnZesxc2NTDbBJ7a9zU'
+			}
+			var msgData = await wechatApi.sendByTag('mpnews', mpnews, 100)
+
+			console.log(msgData)
+
+			reply = "1"
 		}
 
 		ctx.body = reply
