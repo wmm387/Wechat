@@ -52,8 +52,11 @@ exports.formatMessage = formatMessage
 exports.tpl = function(content, message) {
 
 	var info = {}
+	var type = 'text'
 	// 默认回复类型为文本
-	var type = content.type ? content.type : 'text'
+	if (content.type) {
+		type = content.type
+	}
  	var fromUserName = message.FromUserName
  	var toUserName = message.ToUserName
 

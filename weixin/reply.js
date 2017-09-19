@@ -1,7 +1,9 @@
 'use strict'
 
-var config = require('./config')
-var Wechat = require('./wechat/wechat')
+var path = require('path')
+var config = require('../config')
+var Wechat = require('../wechat/wechat')
+var menu = require('./menu')
 var wechatApi = new Wechat(config.wechat)
 
 // 回复信息控制
@@ -29,8 +31,29 @@ exports.reply = async (ctx,next) => {
 		}else if (message.Event === 'SCAN') {
 			console.log('关注后扫二维码' + message.EventKey + ' ' + message.Ticket)
 			ctx.body = '看到你扫了一下哦'
-		}else if (message.Event === '') {
+		}else if (message.Event === 'VIEW') {
 			ctx.body = '您点击了菜单中的链接: ' + message.EventKey
+		}else if (message.Event === 'scancode_push') {
+			//扫码推送事件
+			console.log(message.ScanCodeInfo.ScanType)
+			console.log(message.ScanCodeInfo.ScanResult)
+			ctx.body = '您点击了菜单中: ' + message.EventKey
+		}else if (message.Event === 'pic_sysphoto') {
+			//微信相册事件
+			console.log(message.SendPicsInfo.PicList)
+			console.log(message.SendPicsInfo.Count)
+			ctx.body = '您点击了菜单中的: ' + message.EventKey
+		}else if (message.Event === 'pic_weixin') {
+			console.log(message.SendPicsInfo.PicList)
+			console.log(message.SendPicsInfo.Count)
+			ctx.body = '您点击了菜单中的: ' + message.EventKey
+		}else if (message.Event === 'location_select') {
+			console.log(message.SendLocationInfo.Location_X)
+			console.log(message.SendLocationInfo.Location_Y)
+			console.log(message.SendLocationInfo.Scale)
+			console.log(message.SendLocationInfo.Label)
+			console.log(message.SendLocationInfo.Poiname)
+			ctx.body = '您点击了菜单中的: ' + message.EventKey
 		}
 
 	}else if (message.MsgType === 'text') {
@@ -53,14 +76,14 @@ exports.reply = async (ctx,next) => {
 				url: 'https://nodejs.org/'
 			}]
 		}else if (content === '5') {
-			var data = await wechatApi.uploadMaterial('image', __dirname + '/2.png')
+			var data = await wechatApi.uploadMaterial('image', path.join(__dirname, '../2.png'))
 
 			reply = {
 				type: 'image',
 				mediaId: data.media_id
 			}
 		}else if (content === '6') {
-			var data = await wechatApi.uploadMaterial('image', __dirname + '/2.png')
+			var data = await wechatApi.uploadMaterial('image', path.join(__dirname, '../2.png'))
 
 			reply = {
 				type: 'music',
@@ -71,7 +94,7 @@ exports.reply = async (ctx,next) => {
 			}
 		}else if (content === '7') {
 			var data = await wechatApi.uploadMaterial('image',
-							__dirname + '/2.png', {type: 'image'})
+							path.join(__dirname, '../2.png'), {type: 'image'})
 
 			reply = {
 				type: 'image',
@@ -79,7 +102,7 @@ exports.reply = async (ctx,next) => {
 			}
 		}else if (content === '8') {
 			var picData = await wechatApi.uploadMaterial('image',
-							__dirname + '/2.png', {})
+							path.join(__dirname, '../2.png'), {})
 
 			var media = {
 				articles: [{
@@ -165,13 +188,48 @@ exports.reply = async (ctx,next) => {
 			var mpnews = {
 				media_id: 'ZBZShdErOL4QYM4CmZJRfHYQbnZesxc2NTDbBJ7a9zU'
 			}
-			var msgData = await wechatApi.sendByTag('mpnews', mpnews, 100)
+
+			var text = {
+				content: 'Hello Wecaht1'
+			}
+
+			var msgData = await wechatApi.sendByTag("text", text, 100)
 
 			console.log(msgData)
 
 			reply = "1"
+		}else if (content === '12') {
+
+			var mpnews = {
+				media_id: 'ZBZShdErOL4QYM4CmZJRfHYQbnZesxc2NTDbBJ7a9zU'
+			}
+
+			var text = {
+				content: 'Hello123123'
+			}
+
+			var msgData = await wechatApi.previewMass("text", text, message.FromUserName)
+
+			console.log(msgData)
+
+			// reply = "1"
+		}else if (content === '13') {
+
+			var data = await wechatApi.deleteMenu()
+
+			console.log('del' + data)
 		}
 
 		ctx.body = reply
 	}
+}
+
+//自定义菜单设置
+exports.setMenu = async (ctx,next) => {
+	// 初始化之前先删除菜单
+	wechatApi.deleteMenu().then(function() {
+		return wechatApi.createMenu(menu)
+	}).then(function(msg) {
+		console.log('createMenu' + msg)
+	})
 }
